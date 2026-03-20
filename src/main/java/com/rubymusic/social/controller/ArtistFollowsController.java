@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -17,11 +16,6 @@ public class ArtistFollowsController implements ArtistFollowsApi {
 
     private final ArtistFollowService artistFollowService;
     private final HttpServletRequest httpRequest;
-
-    @Override
-    public Optional<HttpServletRequest> getRequest() {
-        return Optional.of(httpRequest);
-    }
 
     private UUID currentUserId() {
         return UUID.fromString(httpRequest.getHeader("X-User-Id"));

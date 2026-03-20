@@ -14,7 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -24,11 +23,6 @@ public class ReportsController implements ReportsApi {
     private final ReportService reportService;
     private final ReportMapper reportMapper;
     private final HttpServletRequest httpRequest;
-
-    @Override
-    public Optional<HttpServletRequest> getRequest() {
-        return Optional.of(httpRequest);
-    }
 
     private UUID currentUserId() {
         return UUID.fromString(httpRequest.getHeader("X-User-Id"));

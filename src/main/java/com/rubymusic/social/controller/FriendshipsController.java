@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -21,11 +20,6 @@ public class FriendshipsController implements FriendshipsApi {
     private final FriendshipService friendshipService;
     private final FriendshipMapper friendshipMapper;
     private final HttpServletRequest httpRequest;
-
-    @Override
-    public Optional<HttpServletRequest> getRequest() {
-        return Optional.of(httpRequest);
-    }
 
     private UUID currentUserId() {
         return UUID.fromString(httpRequest.getHeader("X-User-Id"));

@@ -203,8 +203,9 @@ paths:
         - name: status
           in: query
           schema:
-            $ref: '#/components/schemas/ReportStatus'
-          default: PENDING
+            allOf:
+              - $ref: '#/components/schemas/ReportStatus'
+            default: PENDING
         - $ref: '#/components/parameters/PageParam'
         - $ref: '#/components/parameters/SizeParam'
       responses:

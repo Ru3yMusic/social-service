@@ -1,0 +1,77 @@
+# ========================
+# Maven
+# ========================
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+*.nar
+
+# ========================
+# Spring Boot
+# ========================
+*.log
+logs/
+spring.log
+
+# ========================
+# IntelliJ IDEA
+# ========================
+.idea/*
+!.idea/modules.xml
+!.idea/misc.xml
+!.idea/compiler.xml
+!.idea/encodings.xml
+*.iws
+*.ipr
+out/
+
+# ========================
+# Eclipse / STS
+# ========================
+.classpath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+bin/
+
+# ========================
+# VS Code
+# ========================
+.vscode/
+
+# ========================
+# Overrides locales
+# ========================
+application-local.yml
+application-local.properties
+*.env
+.env
+.env.*
+
+# ========================
+# OS
+# ========================
+.DS_Store
+Thumbs.db
+desktop.ini
+hs_err_pid*
+replay_pid*
+
+# ========================
+# Temporales
+# ========================
+*.tmp
+*.bak
+*.swp
+*.ctxt
+.mtj.tmp/
+*~
