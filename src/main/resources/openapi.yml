@@ -177,6 +177,84 @@ paths:
 
   # ── Reports ──────────────────────────────────────────────────────────────────
 
+  /api/v1/social/reports/grouped:
+    get:
+      tags: [Reports]
+      operationId: listGroupedReports
+      summary: List reports grouped by target (admin Reportes panel cards)
+      parameters:
+        - name: targetType
+          in: query
+          required: false
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ReportTargetType'
+          description: Filter by target type (USER, SONG, COMMENT). Omit for all.
+        - name: status
+          in: query
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ReportStatus'
+            default: PENDING
+      responses:
+        '200':
+          description: List of report summaries grouped by target
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReportTargetSummary'
+
+  /api/v1/social/reports/target/{targetId}:
+    get:
+      tags: [Reports]
+      operationId: getReportsByTarget
+      summary: Full report history for a specific target (admin detail modal)
+      parameters:
+        - name: targetId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: All reports for this target, newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReportResponse'
+
+  /api/v1/social/reports/target/{targetId}/dismiss:
+    patch:
+      tags: [Reports]
+      operationId: dismissReportsByTarget
+      summary: Dismiss all pending reports for a target (admin Descartar action)
+      parameters:
+        - name: targetId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: All pending reports for this target dismissed
+
+  /api/v1/social/reports/stats:
+    get:
+      tags: [Reports]
+      operationId: getReportStats
+      summary: Aggregate report counts for the admin dashboard "Reportes de Gravedad" chart
+      responses:
+        '200':
+          description: Report statistics by status and target type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportStatsResponse'
+
   /api/v1/social/reports:
     post:
       tags: [Reports]
@@ -198,7 +276,7 @@ paths:
     get:
       tags: [Reports]
       operationId: listReports
-      summary: List reports by status (admin only)
+      summary: List individual reports by status and optional target type (admin only)
       parameters:
         - name: status
           in: query
@@ -206,6 +284,12 @@ paths:
             allOf:
               - $ref: '#/components/schemas/ReportStatus'
             default: PENDING
+        - name: targetType
+          in: query
+          required: false
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ReportTargetType'
         - $ref: '#/components/parameters/PageParam'
         - $ref: '#/components/parameters/SizeParam'
       responses:
@@ -382,6 +466,42 @@ components:
     ReportStatus:
       type: string
       enum: [PENDING, REVIEWED, DISMISSED]
+
+    ReportStatsResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int64
+        byStatus:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int64
+          description: Count per ReportStatus (PENDING, REVIEWED, DISMISSED)
+        byTargetType:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int64
+          description: Count per ReportTargetType (COMMENT, SONG, USER)
+
+    ReportTargetSummary:
+      type: object
+      description: Aggregated report info for one target entity (used in admin grouped list)
+      properties:
+        targetId:
+          type: string
+        targetType:
+          $ref: '#/components/schemas/ReportTargetType'
+        reportCount:
+          type: integer
+          format: int64
+          description: Total pending reports for this target
+        latestReportAt:
+          type: string
+          format: date-time
+          description: Date of the most recent report
 
     ErrorResponse:
       type: object
