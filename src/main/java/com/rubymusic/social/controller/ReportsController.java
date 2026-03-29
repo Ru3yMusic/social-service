@@ -3,10 +3,11 @@ package com.rubymusic.social.controller;
 import com.rubymusic.social.dto.CreateReportRequest;
 import com.rubymusic.social.dto.ReportPage;
 import com.rubymusic.social.dto.ReportResponse;
-import com.rubymusic.social.dto.ReportStatus;
+import com.rubymusic.social.dto.ReportStatsResponse;
 import com.rubymusic.social.dto.ReportTargetSummary;
-import com.rubymusic.social.dto.ReportTargetType;
 import com.rubymusic.social.dto.UpdateReportStatusRequest;
+import com.rubymusic.social.model.enums.ReportStatus;
+import com.rubymusic.social.model.enums.ReportTargetType;
 import com.rubymusic.social.mapper.ReportMapper;
 import com.rubymusic.social.service.ReportService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,7 +18,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -37,19 +37,14 @@ public class ReportsController implements ReportsApi {
 
     @Override
     public ResponseEntity<ReportResponse> createReport(CreateReportRequest body) {
-        var targetType = com.rubymusic.social.model.enums.ReportTargetType.valueOf(body.getTargetType().name());
-        var report = reportService.createReport(currentUserId(), targetType, body.getTargetId(), body.getReason());
+        var report = reportService.createReport(currentUserId(), body.getTargetType(), body.getTargetId(), body.getReason());
         return ResponseEntity.status(HttpStatus.CREATED).body(reportMapper.toDto(report));
     }
 
     @Override
     public ResponseEntity<ReportPage> listReports(ReportStatus status, ReportTargetType targetType,
                                                    Integer page, Integer size) {
-        var entityStatus = com.rubymusic.social.model.enums.ReportStatus.valueOf(status.name());
-        var entityTargetType = targetType != null
-                ? com.rubymusic.social.model.enums.ReportTargetType.valueOf(targetType.name())
-                : null;
-        var p = reportService.getReportsByStatus(entityStatus, entityTargetType, PageRequest.of(page, size));
+        var p = reportService.getReportsByStatus(status, targetType, PageRequest.of(page, size));
         ReportPage dto = new ReportPage()
                 .content(reportMapper.toDtoList(p.getContent()))
                 .totalElements((int) p.getTotalElements())
@@ -61,26 +56,25 @@ public class ReportsController implements ReportsApi {
 
     @Override
     public ResponseEntity<ReportResponse> updateReportStatus(UUID reportId, UpdateReportStatusRequest body) {
-        var entityStatus = com.rubymusic.social.model.enums.ReportStatus.valueOf(body.getStatus().name());
-        var report = reportService.updateStatus(reportId, entityStatus);
+        var report = reportService.updateStatus(reportId, body.getStatus());
         return ResponseEntity.ok(reportMapper.toDto(report));
     }
 
     @Override
-    public ResponseEntity<Map<String, Object>> getReportStats() {
-        return ResponseEntity.ok(reportService.getStats());
+    public ResponseEntity<ReportStatsResponse> getReportStats() {
+        Map<String, Object> stats = reportService.getStats();
+        ReportStatsResponse response = new ReportStatsResponse()
+                .total((Long) stats.get("total"))
+                .byStatus((Map<String, Long>) stats.get("byStatus"))
+                .byTargetType((Map<String, Long>) stats.get("byTargetType"));
+        return ResponseEntity.ok(response);
     }
 
     @Override
     public ResponseEntity<List<ReportTargetSummary>> listGroupedReports(ReportTargetType targetType,
                                                                           ReportStatus status) {
-        var entityStatus = status != null
-                ? com.rubymusic.social.model.enums.ReportStatus.valueOf(status.name())
-                : com.rubymusic.social.model.enums.ReportStatus.PENDING;
-        var entityTargetType = targetType != null
-                ? com.rubymusic.social.model.enums.ReportTargetType.valueOf(targetType.name())
-                : null;
-        List<Map<String, Object>> groups = reportService.getGroupedReports(entityStatus, entityTargetType);
+        ReportStatus effectiveStatus = status != null ? status : ReportStatus.PENDING;
+        List<Map<String, Object>> groups = reportService.getGroupedReports(effectiveStatus, targetType);
         List<ReportTargetSummary> result = groups.stream()
                 .map(m -> {
                     LocalDateTime lat = (LocalDateTime) m.get("latestReportAt");
@@ -88,7 +82,7 @@ public class ReportsController implements ReportsApi {
                             .targetId((String) m.get("targetId"))
                             .targetType(ReportTargetType.valueOf((String) m.get("targetType")))
                             .reportCount((Long) m.get("reportCount"))
-                            .latestReportAt(lat != null ? lat.atOffset(ZoneOffset.UTC) : null);
+                            .latestReportAt(lat);
                 })
                 .collect(Collectors.toList());
         return ResponseEntity.ok(result);

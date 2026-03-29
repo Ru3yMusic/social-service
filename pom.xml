@@ -147,6 +147,11 @@
                             <generateModelTests>false</generateModelTests>
                             <generateApiDocumentation>false</generateApiDocumentation>
                             <generateModelDocumentation>false</generateModelDocumentation>
+                            <importMappings>
+                                <importMapping>ReportStatus=com.rubymusic.social.model.enums.ReportStatus</importMapping>
+                                <importMapping>ReportTargetType=com.rubymusic.social.model.enums.ReportTargetType</importMapping>
+                                <importMapping>FriendshipStatus=com.rubymusic.social.model.enums.FriendshipStatus</importMapping>
+                            </importMappings>
                             <configOptions>
                                 <interfaceOnly>true</interfaceOnly>
                                 <useSpringBoot3>true</useSpringBoot3>
