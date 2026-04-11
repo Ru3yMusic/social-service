@@ -24,13 +24,11 @@ spring.log
 # ========================
 # IntelliJ IDEA
 # ========================
-.idea/*
-!.idea/modules.xml
-!.idea/misc.xml
-!.idea/compiler.xml
-!.idea/encodings.xml
+.idea/modules.xml
+.idea/misc.xml
 *.iws
 *.ipr
+.idea
 out/
 
 # ========================
@@ -41,6 +39,7 @@ out/
 .settings/
 .springBeans
 .sts4-cache/
+.factorypath
 bin/
 
 # ========================
