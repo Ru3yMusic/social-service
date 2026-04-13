@@ -1,0 +1,36 @@
+spring:
+  config:
+    import: ""  # Disable config-server import for tests
+
+  datasource:
+    url: jdbc:h2:mem:socialtestdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: false
+    open-in-view: false
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+
+eureka:
+  client:
+    enabled: false
+
+# Placeholder — JwtConfig is @ConditionalOnMissingBean(PublicKey.class),
+# so this value is never decoded when TestPublicKeyConfig provides the bean.
+jwt:
+  public-key: placeholder
+
+server:
+  port: 0
+
+logging:
+  level:
+    com.rubymusic.social: DEBUG

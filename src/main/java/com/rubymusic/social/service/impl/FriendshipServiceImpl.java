@@ -1,5 +1,8 @@
 package com.rubymusic.social.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rubymusic.social.client.AuthUserValidationClient;
 import com.rubymusic.social.model.Friendship;
 import com.rubymusic.social.model.enums.FriendshipStatus;
 import com.rubymusic.social.repository.FriendshipRepository;
@@ -11,7 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -25,6 +30,8 @@ public class FriendshipServiceImpl implements FriendshipService {
 
     private final FriendshipRepository friendshipRepository;
     private final KafkaTemplate<String, String> kafkaTemplate;
+    private final AuthUserValidationClient authUserValidationClient;
+    private final ObjectMapper objectMapper;
 
     @Override
     @Transactional
@@ -33,6 +40,10 @@ public class FriendshipServiceImpl implements FriendshipService {
         if (requesterId.equals(addresseeId)) {
             throw new IllegalArgumentException("Cannot send a friend request to yourself");
         }
+
+        // Validate addressee exists in auth-service (fail-closed)
+        log.debug("Validating addressee {} exists in auth-service before creating friendship", addresseeId);
+        authUserValidationClient.validateUserExists(addresseeId);
 
         friendshipRepository.findByRequesterIdAndAddresseeId(requesterId, addresseeId)
                 .ifPresent(f -> {
@@ -47,13 +58,13 @@ public class FriendshipServiceImpl implements FriendshipService {
         friendship = friendshipRepository.save(friendship);
 
         // Publish JSON event for realtime-service
-        String payload = String.format(
-                "{\"requesterId\":\"%s\",\"addresseeId\":\"%s\",\"friendshipId\":\"%s\"," +
-                "\"requesterUsername\":\"%s\",\"requesterPhotoUrl\":\"%s\"}",
-                requesterId, addresseeId, friendship.getId(),
-                requesterUsername != null ? requesterUsername : "",
-                requesterPhotoUrl != null ? requesterPhotoUrl : "");
-        kafkaTemplate.send(TOPIC_FRIEND_REQUEST, payload);
+        Map<String, String> requestPayload = new HashMap<>();
+        requestPayload.put("requesterId", requesterId.toString());
+        requestPayload.put("addresseeId", addresseeId.toString());
+        requestPayload.put("friendshipId", friendship.getId().toString());
+        requestPayload.put("requesterUsername", requesterUsername != null ? requesterUsername : "");
+        requestPayload.put("requesterPhotoUrl", requesterPhotoUrl != null ? requesterPhotoUrl : "");
+        kafkaTemplate.send(TOPIC_FRIEND_REQUEST, toJson(requestPayload));
         return friendship;
     }
 
@@ -71,13 +82,13 @@ public class FriendshipServiceImpl implements FriendshipService {
         friendship.setStatus(FriendshipStatus.ACCEPTED);
         friendship = friendshipRepository.save(friendship);
 
-        String payload = String.format(
-                "{\"requesterId\":\"%s\",\"addresseeId\":\"%s\",\"friendshipId\":\"%s\"," +
-                "\"addresseeUsername\":\"%s\",\"addresseePhotoUrl\":\"%s\"}",
-                friendship.getRequesterId(), addresseeId, friendshipId,
-                addresseeUsername != null ? addresseeUsername : "",
-                addresseePhotoUrl != null ? addresseePhotoUrl : "");
-        kafkaTemplate.send(TOPIC_FRIEND_ACCEPTED, payload);
+        Map<String, String> acceptPayload = new HashMap<>();
+        acceptPayload.put("requesterId", friendship.getRequesterId().toString());
+        acceptPayload.put("addresseeId", addresseeId.toString());
+        acceptPayload.put("friendshipId", friendshipId.toString());
+        acceptPayload.put("addresseeUsername", addresseeUsername != null ? addresseeUsername : "");
+        acceptPayload.put("addresseePhotoUrl", addresseePhotoUrl != null ? addresseePhotoUrl : "");
+        kafkaTemplate.send(TOPIC_FRIEND_ACCEPTED, toJson(acceptPayload));
         return friendship;
     }
 
@@ -121,6 +132,14 @@ public class FriendshipServiceImpl implements FriendshipService {
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
+
+    private String toJson(Map<String, String> payload) {
+        try {
+            return objectMapper.writeValueAsString(payload);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to serialize Kafka payload", e);
+        }
+    }
 
     private Friendship findById(UUID friendshipId) {
         return friendshipRepository.findById(friendshipId)
