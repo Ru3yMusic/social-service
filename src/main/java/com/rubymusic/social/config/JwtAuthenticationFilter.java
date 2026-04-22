@@ -55,7 +55,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         List.of(new SimpleGrantedAuthority(authority))
                 );
                 SecurityContextHolder.getContext().setAuthentication(auth);
-                log.debug("JWT authenticated: sub={} role={}", claims.getSubject(), role);
+                log.trace("JWT authenticated: sub={} role={}", claims.getSubject(), role);
 
             } catch (JwtException e) {
                 SecurityContextHolder.clearContext();
