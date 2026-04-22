@@ -45,19 +45,38 @@ public class FriendshipServiceImpl implements FriendshipService {
         log.debug("Validating addressee {} exists in auth-service before creating friendship", addresseeId);
         authUserValidationClient.validateUserExists(addresseeId);
 
-        friendshipRepository.findByRequesterIdAndAddresseeId(requesterId, addresseeId)
-                .ifPresent(f -> {
-                    throw new IllegalStateException("Friend request already exists");
-                });
+        // Duplicate policy: a UNIQUE(requester_id, addressee_id) constraint means we
+        // can never insert a second row for the same pair. Instead, if a previous
+        // friendship exists we branch by status:
+        //   - PENDING  → reject (the addressee hasn't answered yet)
+        //   - ACCEPTED → reject (users already friends)
+        //   - REJECTED or REMOVED → revive the row as a fresh PENDING request
+        //     (preserves history while letting the user retry).
+        Friendship friendship = friendshipRepository
+                .findByRequesterIdAndAddresseeId(requesterId, addresseeId)
+                .map(existing -> {
+                    switch (existing.getStatus()) {
+                        case PENDING:
+                            throw new IllegalStateException("Friend request already pending");
+                        case ACCEPTED:
+                            throw new IllegalStateException("Users are already friends");
+                        case REJECTED:
+                        case REMOVED:
+                            existing.setStatus(FriendshipStatus.PENDING);
+                            existing.setDeletedAt(null);
+                            return friendshipRepository.save(existing);
+                        default:
+                            throw new IllegalStateException("Unexpected friendship status");
+                    }
+                })
+                .orElseGet(() -> friendshipRepository.save(Friendship.builder()
+                        .requesterId(requesterId)
+                        .addresseeId(addresseeId)
+                        .status(FriendshipStatus.PENDING)
+                        .build()));
 
-        Friendship friendship = Friendship.builder()
-                .requesterId(requesterId)
-                .addresseeId(addresseeId)
-                .status(FriendshipStatus.PENDING)
-                .build();
-        friendship = friendshipRepository.save(friendship);
-
-        // Publish JSON event for realtime-service
+        // Publish JSON event for realtime-service (both fresh and revived rows
+        // notify the addressee exactly the same way).
         Map<String, String> requestPayload = new HashMap<>();
         requestPayload.put("requesterId", requesterId.toString());
         requestPayload.put("addresseeId", addresseeId.toString());
