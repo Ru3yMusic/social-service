@@ -33,7 +33,10 @@ public class ServiceTokenProvider {
             @Qualifier("authRestTemplate") RestTemplate authRestTemplate,
             @Value("${services.auth.base-url:http://auth-service}") String baseUrl,
             @Value("${services.auth.service-name:social-service}") String serviceName,
-            @Value("${services.auth.service-secret:change-me}") String serviceSecret) {
+            // Read the SAME property auth-service validates against
+            // (`internal.service-secret` in config-server/application.yml) so
+            // the two sides stay aligned without per-service overrides.
+            @Value("${internal.service-secret:dev-secret-change-in-prod}") String serviceSecret) {
         this.authRestTemplate = authRestTemplate;
         this.baseUrl = baseUrl;
         this.serviceName = serviceName;
