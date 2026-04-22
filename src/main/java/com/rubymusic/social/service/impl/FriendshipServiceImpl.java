@@ -60,8 +60,7 @@ public class FriendshipServiceImpl implements FriendshipService {
                             throw new IllegalStateException("Friend request already pending");
                         case ACCEPTED:
                             throw new IllegalStateException("Users are already friends");
-                        case REJECTED:
-                        case REMOVED:
+                        case REJECTED, REMOVED:
                             existing.setStatus(FriendshipStatus.PENDING);
                             existing.setDeletedAt(null);
                             return friendshipRepository.save(existing);
