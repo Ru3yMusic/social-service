@@ -36,7 +36,8 @@ public class ServiceTokenProvider {
             // Read the SAME property auth-service validates against
             // (`internal.service-secret` in config-server/application.yml) so
             // the two sides stay aligned without per-service overrides.
-            @Value("${internal.service-secret:dev-secret-change-in-prod}") String serviceSecret) {
+            // No default — fail fast at startup if the shared property is missing.
+            @Value("${internal.service-secret}") String serviceSecret) {
         this.authRestTemplate = authRestTemplate;
         this.baseUrl = baseUrl;
         this.serviceName = serviceName;
