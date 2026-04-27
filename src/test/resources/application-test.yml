@@ -28,6 +28,9 @@ eureka:
 jwt:
   public-key: placeholder
 
+internal:
+  service-secret: test-secret
+
 server:
   port: 0
 
