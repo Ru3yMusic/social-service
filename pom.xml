@@ -22,6 +22,41 @@
         <spring-cloud.version>2023.0.1</spring-cloud.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <springdoc.version>2.5.0</springdoc.version>
+
+        <plugin-jacoco.version>0.8.11</plugin-jacoco.version>
+        <plugin-sonar.version>3.10.0.2594</plugin-sonar.version>
+
+        <!-- SONAR CONFIGURATION
+             Excluded from coverage:
+               - *Application.*           : Spring Boot bootstrap
+               - config/**                : Spring config + JWT/Security wiring
+               - controller/*Api.*        : OpenAPI-generated interfaces
+               - controller/ApiUtil.*     : OpenAPI-generated helper
+               - dto/**                   : POJOs/records (incl. OpenAPI-generated)
+               - exception/*Exception.*   : exception classes (handler tested separately)
+               - mapper/**                : MapStruct-generated
+               - model/**                 : JPA entities with Lombok
+               - repository/**            : Spring Data interfaces
+               - client/**                : OpenAPI-generated REST clients
+        -->
+        <sonar.coverage.exclusions>
+            **/*Application.*,
+            **/config/**,
+            **/controller/*Api.*,
+            **/controller/ApiUtil.*,
+            **/dto/**,
+            **/exception/*Exception.*,
+            **/mapper/**,
+            **/model/**,
+            **/repository/**,
+            **/client/**,
+            **/target/**
+        </sonar.coverage.exclusions>
+        <sonar.cpd.exclusions>
+            **/model/**,
+            **/dto/**,
+            **/client/**
+        </sonar.cpd.exclusions>
     </properties>
 
     <dependencyManagement>
@@ -190,6 +225,49 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
+            <!-- JACOCO -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${plugin-jacoco.version}</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/*Application.class</exclude>
+                        <exclude>**/config/**</exclude>
+                        <exclude>**/controller/*Api.class</exclude>
+                        <exclude>**/controller/ApiUtil.class</exclude>
+                        <exclude>**/dto/**</exclude>
+                        <exclude>**/exception/*Exception.class</exclude>
+                        <exclude>**/mapper/**</exclude>
+                        <exclude>**/model/**</exclude>
+                        <exclude>**/repository/**</exclude>
+                        <exclude>**/client/**</exclude>
+                        <exclude>**/target/**</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>test-report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- SONARQUBE -->
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>${plugin-sonar.version}</version>
+            </plugin>
+
             <plugin>
                 <groupId>org.openapitools</groupId>
                 <artifactId>openapi-generator-maven-plugin</artifactId>
