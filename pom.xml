@@ -37,7 +37,7 @@
                - mapper/**                : MapStruct-generated
                - model/**                 : JPA entities with Lombok
                - repository/**            : Spring Data interfaces
-               - client/**                : OpenAPI-generated REST clients
+               - client/auth/**           : OpenAPI-generated auth client (api/model/invoker)
         -->
         <sonar.coverage.exclusions>
             **/*Application.*,
@@ -49,13 +49,13 @@
             **/mapper/**,
             **/model/**,
             **/repository/**,
-            **/client/**,
+            **/client/auth/**,
             **/target/**
         </sonar.coverage.exclusions>
         <sonar.cpd.exclusions>
             **/model/**,
             **/dto/**,
-            **/client/**
+            **/client/auth/**
         </sonar.cpd.exclusions>
     </properties>
 
@@ -241,7 +241,7 @@
                         <exclude>**/mapper/**</exclude>
                         <exclude>**/model/**</exclude>
                         <exclude>**/repository/**</exclude>
-                        <exclude>**/client/**</exclude>
+                        <exclude>**/client/auth/**</exclude>
                         <exclude>**/target/**</exclude>
                     </excludes>
                 </configuration>

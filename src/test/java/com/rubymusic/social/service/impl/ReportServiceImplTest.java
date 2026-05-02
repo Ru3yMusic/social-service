@@ -119,11 +119,11 @@ class ReportServiceImplTest {
                 ReportStatus.PENDING, ReportTargetType.SONG);
 
         assertThat(result).hasSize(1);
-        Map<String, Object> entry = result.get(0);
-        assertThat(entry.get("targetId")).isEqualTo("song-1");
-        assertThat(entry.get("targetType")).isEqualTo("SONG");
-        assertThat(entry.get("reportCount")).isEqualTo(5L);
-        assertThat(entry.get("latestReportAt")).isEqualTo(when);
+        assertThat(result.get(0))
+                .containsEntry("targetId", "song-1")
+                .containsEntry("targetType", "SONG")
+                .containsEntry("reportCount", 5L)
+                .containsEntry("latestReportAt", when);
     }
 
     @Test
@@ -135,7 +135,7 @@ class ReportServiceImplTest {
         List<Map<String, Object>> result = service.getGroupedReports(ReportStatus.PENDING, null);
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).get("targetId")).isEqualTo("user-1");
+        assertThat(result.get(0)).containsEntry("targetId", "user-1");
     }
 
     @Test
@@ -184,7 +184,7 @@ class ReportServiceImplTest {
 
         Map<String, Object> result = service.getStats();
 
-        assertThat(result.get("total")).isEqualTo(100L);
+        assertThat(result).containsEntry("total", 100L);
         @SuppressWarnings("unchecked")
         Map<String, Long> byStatus = (Map<String, Long>) result.get("byStatus");
         assertThat(byStatus).containsEntry("PENDING", 60L).containsEntry("REVIEWED", 40L);
@@ -201,7 +201,7 @@ class ReportServiceImplTest {
 
         Map<String, Object> result = service.getStats();
 
-        assertThat(result.get("total")).isEqualTo(0L);
+        assertThat(result).containsEntry("total", 0L);
         @SuppressWarnings("unchecked")
         Map<String, Long> byStatus = (Map<String, Long>) result.get("byStatus");
         assertThat(byStatus).isEmpty();
