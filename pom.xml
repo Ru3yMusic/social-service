@@ -38,7 +38,24 @@
                - model/**                 : JPA entities with Lombok
                - repository/**            : Spring Data interfaces
                - client/auth/**           : OpenAPI-generated auth client (api/model/invoker)
+               - target/**                : Build outputs incl. generated-sources
         -->
+        <sonar.coverage.jacoco.xmlReportPaths>
+            ${project.build.directory}/site/jacoco/jacoco.xml
+        </sonar.coverage.jacoco.xmlReportPaths>
+        <sonar.exclusions>
+            **/target/**,
+            **/*Application.*,
+            **/config/**,
+            **/controller/*Api.*,
+            **/controller/ApiUtil.*,
+            **/dto/**,
+            **/exception/*Exception.*,
+            **/mapper/**,
+            **/model/**,
+            **/repository/**,
+            **/client/auth/**
+        </sonar.exclusions>
         <sonar.coverage.exclusions>
             **/*Application.*,
             **/config/**,
