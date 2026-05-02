@@ -308,11 +308,11 @@ class FriendshipServiceImplTest {
     @DisplayName("acceptRequest() — friendship not found → IllegalArgumentException")
     void acceptRequest_notFound_throwsIllegalArgument() {
         UUID friendshipId = UUID.randomUUID();
+        UUID addresseeId = UUID.randomUUID();
         when(friendshipRepository.findById(friendshipId)).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class,
-                () -> friendshipService.acceptRequest(
-                        friendshipId, UUID.randomUUID(), "bob", null));
+                () -> friendshipService.acceptRequest(friendshipId, addresseeId, "bob", null));
 
         verify(friendshipRepository, never()).save(any());
         verifyNoInteractions(kafkaTemplate);
@@ -428,10 +428,11 @@ class FriendshipServiceImplTest {
     @DisplayName("rejectRequest() — friendship not found → IllegalArgumentException")
     void rejectRequest_notFound_throwsIllegalArgument() {
         UUID friendshipId = UUID.randomUUID();
+        UUID addresseeId = UUID.randomUUID();
         when(friendshipRepository.findById(friendshipId)).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class,
-                () -> friendshipService.rejectRequest(friendshipId, UUID.randomUUID()));
+                () -> friendshipService.rejectRequest(friendshipId, addresseeId));
     }
 
     // ── removeFriend ───────────────────────────────────────────────────────────
@@ -498,10 +499,11 @@ class FriendshipServiceImplTest {
     @DisplayName("removeFriend() — friendship not found → IllegalArgumentException")
     void removeFriend_notFound_throwsIllegalArgument() {
         UUID friendshipId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         when(friendshipRepository.findById(friendshipId)).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class,
-                () -> friendshipService.removeFriend(friendshipId, UUID.randomUUID()));
+                () -> friendshipService.removeFriend(friendshipId, userId));
     }
 
     // ── getFriends / getPendingRequests / areFriends ───────────────────────────
